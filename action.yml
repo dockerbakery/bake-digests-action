@@ -15,6 +15,10 @@ inputs:
   bake-metadata-output:
     description: "The metadata output from 'docker/bake-action'"
     required: true
+  extract-platform-manifests:
+    description: 'Extract platform manifests (Default: false)'
+    required: false
+    default: false
 
 outputs:
   images:

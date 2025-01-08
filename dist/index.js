@@ -25763,6 +25763,7 @@ async function run() {
         const bakeMetadataOutput = core.getInput('bake-metadata-output', {
             required: true
         });
+        const extractPlatformManifests = core.getInput('extract-platform-manifests') === 'true';
         // Remove any empty bake targets
         const filteredBakeTargets = bakeTargets.filter(target => target.trim() !== '');
         // Log the bake targets
@@ -25785,13 +25786,15 @@ async function run() {
                 core.info(`Adding target "${target}" image to output: ${image}`);
                 output.images.push(image);
                 // Extract the platform manifest
-                const inspect = await (0, dockerManifestInspect_1.dockerManifestInspect)(image);
-                // Add the platform images to the output
-                for (const manifest of inspect.manifests) {
-                    if (manifest.platform.architecture !== 'unknown') {
-                        const platformImage = `${tag}@${manifest.digest}`;
-                        core.info(`Adding target "${target}" platform image for "${manifest.platform.architecture}" to output: ${platformImage}`);
-                        output.images.push(platformImage);
+                if (extractPlatformManifests) {
+                    const inspect = await (0, dockerManifestInspect_1.dockerManifestInspect)(image);
+                    // Add the platform images to the output
+                    for (const manifest of inspect.manifests) {
+                        if (manifest.platform.architecture !== 'unknown') {
+                            const platformImage = `${tag}@${manifest.digest}`;
+                            core.info(`Adding target "${target}" platform image for "${manifest.platform.architecture}" to output: ${platformImage}`);
+                            output.images.push(platformImage);
+                        }
                     }
                 }
             });

@@ -24,6 +24,8 @@ export async function run(): Promise<void> {
     const bakeMetadataOutput: string = core.getInput('bake-metadata-output', {
       required: true
     })
+    const extractPlatformManifests: boolean =
+      core.getInput('extract-platform-manifests') === 'true'
 
     // Remove any empty bake targets
     const filteredBakeTargets = bakeTargets.filter(
@@ -57,16 +59,18 @@ export async function run(): Promise<void> {
         output.images.push(image)
 
         // Extract the platform manifest
-        const inspect = await dockerManifestInspect(image)
+        if (extractPlatformManifests) {
+          const inspect = await dockerManifestInspect(image)
 
-        // Add the platform images to the output
-        for (const manifest of inspect.manifests) {
-          if (manifest.platform.architecture !== 'unknown') {
-            const platformImage = `${tag}@${manifest.digest}`
-            core.info(
-              `Adding target "${target}" platform image for "${manifest.platform.architecture}" to output: ${platformImage}`
-            )
-            output.images.push(platformImage)
+          // Add the platform images to the output
+          for (const manifest of inspect.manifests) {
+            if (manifest.platform.architecture !== 'unknown') {
+              const platformImage = `${tag}@${manifest.digest}`
+              core.info(
+                `Adding target "${target}" platform image for "${manifest.platform.architecture}" to output: ${platformImage}`
+              )
+              output.images.push(platformImage)
+            }
           }
         }
       })
