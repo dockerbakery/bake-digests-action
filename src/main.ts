@@ -46,7 +46,8 @@ export async function run(): Promise<void> {
         continue
       }
 
-      core.group(`Processing bake target: ${target}`, async () => {
+      // Process the bake target
+      await core.group(`Processing bake target: ${target}`, async () => {
         const metadata = bakeMetadata[target]
         const tag = metadata[BAKE_MEDATA_IMAGE_NAME]
         const digest = metadata[BAKE_MEDATA_IMAGE_DIGEST]
