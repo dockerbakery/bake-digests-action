@@ -1,5 +1,13 @@
 import * as core from '@actions/core'
-import { wait } from './wait'
+import type { BuildxMetadata } from './types'
+import { dockerManifestInspect } from './dockerManifestInspect'
+
+const BAKE_MEDATA_IMAGE_NAME = 'image.name' as const
+const BAKE_MEDATA_IMAGE_DIGEST = 'containerimage.digest' as const
+
+type ActionOutputs = {
+  images: string[]
+}
 
 /**
  * The main function for the action.
@@ -7,18 +15,71 @@ import { wait } from './wait'
  */
 export async function run(): Promise<void> {
   try {
-    const ms: string = core.getInput('milliseconds')
+    const output: ActionOutputs = {
+      images: []
+    }
+    const bakeTargets: string[] = core.getMultilineInput('bake-targets', {
+      required: false
+    })
+    const bakeMetadataOutput: string = core.getInput('bake-metadata-output', {
+      required: true
+    })
 
-    // Debug logs are only output if the `ACTIONS_STEP_DEBUG` secret is true
-    core.debug(`Waiting ${ms} milliseconds ...`)
+    // Remove any empty bake targets
+    const filteredBakeTargets = bakeTargets.filter(
+      target => target.trim() !== ''
+    )
 
-    // Log the current timestamp, wait, then log the new timestamp
-    core.debug(new Date().toTimeString())
-    await wait(parseInt(ms, 10))
-    core.debug(new Date().toTimeString())
+    // Log the bake targets
+    core.info(`Bake targets: ${bakeTargets.join(', ')}`)
 
-    // Set outputs for other workflow steps to use
-    core.setOutput('time', new Date().toTimeString())
+    // Parse the bake metadata output
+    const bakeMetadata: BuildxMetadata = JSON.parse(bakeMetadataOutput)
+
+    // Process the bake metadata
+    for (const target in bakeMetadata) {
+      if (
+        filteredBakeTargets.length > 0 ||
+        !filteredBakeTargets.includes(target)
+      ) {
+        core.info(`Skipping bake target: ${target}`)
+        continue
+      }
+
+      core.group(`Processing bake target: ${target}`, async () => {
+        const metadata = bakeMetadata[target]
+        const tag = metadata[BAKE_MEDATA_IMAGE_NAME]
+        const digest = metadata[BAKE_MEDATA_IMAGE_DIGEST]
+        const image = `${tag}@${digest}`
+
+        core.info(`Adding target "${target}" image to output: ${image}`)
+        output.images.push(image)
+
+        // Extract the platform manifest
+        const inspect = await dockerManifestInspect(image)
+
+        // Add the platform images to the output
+        for (const manifest of inspect.manifests) {
+          if (manifest.platform.architecture !== 'unknown') {
+            const platformImage = `${tag}@${manifest.digest}`
+            core.info(
+              `Adding target "${target}" platform image for "${manifest.platform.architecture}" to output: ${platformImage}`
+            )
+            output.images.push(platformImage)
+          }
+        }
+      })
+    }
+
+    // Print the output
+    core.group('Images', async () => {
+      for (const image of output.images) {
+        core.info(image)
+      }
+    })
+
+    // Set the output
+    core.setOutput('images', output.images)
   } catch (error) {
     // Fail the workflow run if an error occurs
     if (error instanceof Error) core.setFailed(error.message)
