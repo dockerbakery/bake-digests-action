@@ -39,7 +39,7 @@ export async function run(): Promise<void> {
     // Process the bake metadata
     for (const target in bakeMetadata) {
       if (
-        filteredBakeTargets.length > 0 ||
+        filteredBakeTargets.length > 0 &&
         !filteredBakeTargets.includes(target)
       ) {
         core.info(`Skipping bake target: ${target}`)

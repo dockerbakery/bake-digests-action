@@ -25771,7 +25771,7 @@ async function run() {
         const bakeMetadata = JSON.parse(bakeMetadataOutput);
         // Process the bake metadata
         for (const target in bakeMetadata) {
-            if (filteredBakeTargets.length > 0 ||
+            if (filteredBakeTargets.length > 0 &&
                 !filteredBakeTargets.includes(target)) {
                 core.info(`Skipping bake target: ${target}`);
                 continue;
