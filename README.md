@@ -1,4 +1,4 @@
-# Bake image digest action
+# Bake image digests action
 
 Generate a list of container image digests from `docker/bake-action` metadata output.
 
