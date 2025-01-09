@@ -15,8 +15,10 @@ inputs:
   bake-metadata-output:
     description: "The metadata output from 'docker/bake-action'"
     required: true
-  extract-platform-manifests:
-    description: 'Extract platform manifests (Default: false)'
+  recursive:
+    description:
+      'If a multi-arch image is specified, additionally include digest of each
+      discrete image'
     required: false
     default: false
 
