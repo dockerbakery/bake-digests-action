@@ -38,6 +38,9 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Install Cosign
+        uses: sigstore/cosign-installer@v3
+
       - name: Login to DockerHub
         uses: docker/login-action@v3
         with:
