@@ -55,7 +55,7 @@ jobs:
 
       - name: Get bake image digests
         id: bake-digests
-        uses: dockerbakery/bake-digests-action@main
+        uses: dockerbakery/bake-digests-action@v1
         with:
           bake-metadata-output: ${{ steps.bake-action.outputs.metadata }}
 
