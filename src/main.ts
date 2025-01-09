@@ -47,11 +47,19 @@ export async function run(): Promise<void> {
         continue
       }
 
+      // Skip buildx metadata
+      if (target.startsWith('buildx.')) {
+        continue
+      }
+
       // Process the bake target
       await core.group(`Processing bake target: ${target}`, async () => {
         const metadata = bakeMetadata[target]
         const tag = metadata[BAKE_MEDATA_IMAGE_NAME]
         const digest = metadata[BAKE_MEDATA_IMAGE_DIGEST]
+
+        if (!tag || !digest) return
+
         const image = `${tag}@${digest}`
 
         core.info(`Adding target "${target}" image to output: ${image}`)
