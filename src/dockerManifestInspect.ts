@@ -10,17 +10,19 @@ export async function dockerManifestInspect(
   image: string
 ): Promise<DockerImageInspection> {
   return new Promise(async (resolve, reject) => {
-    let manifestStreamChunk = ''
     try {
-      await exec.exec('docker', ['manifest', 'inspect', image], {
-        listeners: {
-          stdout: (data_1: Buffer) => {
-            manifestStreamChunk += data_1.toString()
-          }
-        },
-        failOnStdErr: true
-      })
-      resolve(JSON.parse(manifestStreamChunk))
+      const res = await exec.getExecOutput(
+        'docker',
+        ['manifest', 'inspect', image],
+        {
+          ignoreReturnCode: true,
+          silent: true
+        }
+      )
+      if (res.stderr.length > 0 && res.exitCode != 0) {
+        reject(new Error(`Failed to inspect image manifest: ${res.stderr}`))
+      }
+      resolve(JSON.parse(res.stdout.trim()))
     } catch (error) {
       reject(error)
     }

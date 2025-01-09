@@ -25683,17 +25683,15 @@ const exec = __importStar(__nccwpck_require__(8872));
  */
 async function dockerManifestInspect(image) {
     return new Promise(async (resolve, reject) => {
-        let manifestStreamChunk = '';
         try {
-            await exec.exec('docker', ['manifest', 'inspect', image], {
-                listeners: {
-                    stdout: (data_1) => {
-                        manifestStreamChunk += data_1.toString();
-                    }
-                },
-                failOnStdErr: true
+            const res = await exec.getExecOutput('docker', ['manifest', 'inspect', image], {
+                ignoreReturnCode: true,
+                silent: true
             });
-            resolve(JSON.parse(manifestStreamChunk));
+            if (res.stderr.length > 0 && res.exitCode != 0) {
+                reject(new Error(`Failed to inspect image manifest: ${res.stderr}`));
+            }
+            resolve(JSON.parse(res.stdout.trim()));
         }
         catch (error) {
             reject(error);
