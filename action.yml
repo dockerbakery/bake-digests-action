@@ -20,12 +20,12 @@ inputs:
       'If a multi-arch image is specified, additionally include digest of each
       discrete image'
     required: false
-    default: false
+    default: "false"
 
 outputs:
   images:
     description: 'A list of container image digests'
 
 runs:
-  using: 'node20'
+  using: 'node24'
   main: 'dist/index.js'
